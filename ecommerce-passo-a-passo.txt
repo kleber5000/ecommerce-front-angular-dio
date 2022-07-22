@@ -1,0 +1,166 @@
+ANGULAR 8 E-commerce
+
+1 - ng new ecommerce
+2 - Apaga todo app.component.html
+3 - ng g c components/shared/header
+    ng g c components/shared/footer
+    ng g c components/shared/nav
+    ng g c components/bookstore-app
+    ng g c components/bookstore-app/filters
+    ng g c components/bookstore-app/product-list
+    ng g c components/bookstore-app/product-list/product-item
+4 - npm install bootstrap
+    npm install @angular/http@latest
+5 - angular.json:
+..."styles": [
+	...,
+	"node_modules/Bootstrap/dist/css/bootstrap.min.css"
+],...
+6 - nav.component.html:
+<div class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom">
+  <a href="/" class="d-flex align-items-center text-dark text-decoration-none">
+    <app-header></app-header>
+  </a>
+  <nav class="d-inline-flex mt-2 mt-md-0 ms-md-auto">
+    <a class="me-3 py-2 text-dark text-decoratuion-none" href="#">Sobre</a>
+    <a class="me-3 py-2 text-dark text-decoratuion-none" href="#">Produtos</a>
+    <a class="me-3 py-2 text-dark text-decoratuion-none" href="#">Suporte</a>
+  </nav>
+  <a class="btn btn-outline-primary" href="#">Sign up</a>
+</div>
+
+7 - header.component.html:
+<span class="fs-4">Bookstore</span>
+
+8 - footer.component.html:
+<hr>
+<small>&copy;kleber</small>
+
+9 - app.component.html:
+<app-nav></app-nav>
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <app-bookstore-app></app-bookstore-app>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <app-footer></app-footer>
+    </div>
+  </div>
+</div>
+
+10 - bookstore-app.component.html:
+<div class="row">
+  <div class="col">
+    <app-filters></app-filters>
+  </div>
+  <div class="col-md-10">
+    <app-product-list></app-product-list>
+  </div>
+</div>
+
+11 - filters.component.html:
+<div class="card">
+  <div class="card-header">Filtros</div>
+  <div class="card-body">
+    <form>
+      <div class="form-group">
+        <label for="de">De</label>
+        <input type="number" id="de" class="form-control">
+      </div>
+      <div class="form-group">
+        <label for="ate">Até</label>
+        <input type="number" id="ate" class="form-control">
+      </div>
+      <button class="btn btn-primary btn-block btn-sm">Filtrar</button>
+    </form>
+  </div>
+</div>
+
+12 - em product-list cria uma pasta chamada model, e nele cria Book.ts:
+export class Book {
+  id!: string;
+  name!: string;
+  price!: number;
+  quantity!: number;
+  category!: string;
+  img!: string;
+}
+
+13 - em product-list cria novo arquivo chamado product-list.component.service.ts:
+import { Injectable } from "@angular/core";
+import { HttpClient, HttpHeaders } from "@angular/common/http"
+import { Book } from "./model/Book";
+@Injectable()
+export class BookService {
+  private url = 'https://localhost:44302/api/bookstore';
+  httpOptions= {
+    Headers: new HttpHeaders({'content-type': 'application/json'})
+  }
+  constructor(private http:HttpClient){}
+  getBook(){
+    return this.http.get(this.url)
+  }
+}
+
+14 - product-list.component.ts:
+import { Component, OnInit } from "@angular/core";
+import { BookService } from './product-list.component.service';
+@Component({
+  selector: 'app-product-list',
+  templateUrl: './product-list.component.html',
+  styleUrls: ['./product-list.component.css]
+})
+export class ProductListComponent implements OnInit {
+  livros: any;
+  bookService: BookService
+  constructor( bookService: BookService) {
+    this.bookService = bookService;
+  }
+  ngOnInit(): void {
+    this.livros = this.bookService.getBook().subscribe((data => {
+      this.livros = data;
+      console.log(this.livros);
+    }))
+  }
+}
+
+15 - em app.module.ts:
+...imports: [
+   ...,
+   HttpClientModule
+],
+providers: [BookService],
+...
+
+16 - product-item.component.ts, em cima do construtor:
+@Input()
+livro!: Book;
+
+17 - product-item.component.html:
+<div class="card shadow-sm">
+  <img class="bd-placeholder-img card-img-top" width="100%" src="{{"assets/images/" + livro.img + ".jpg"}}" >
+  <div class="card-body">
+    <p class="card-text"> {{livro.name}}</p>
+    <p class="card-text"> {{livro.category}}</p>
+    <p class="card-text"> {{livro.quantity}}</p>
+    <p class="card-text"> {{livro.price | currency: 'BRL'}}</p>
+    <div class="btn-group">
+      <button type="button" class="btn btn-sm btn-primary">Comprar</button>
+      <button type="button" class="btn btn-sm btn-outline-primary">Detalhes</button>
+    </div>
+  </div>
+</div>
+
+18 - product-list.component.html:
+<div class="row">
+  <div class="col-md-4" *ngFor="let livro of livros">
+    <app-product-item [livro]="livro"></app-product-item>
+  </div>
+</div>
+
+19 - coloca as imagens em assets/images
+
+
